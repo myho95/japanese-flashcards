@@ -1,78 +1,67 @@
-# Deploy flashcards lên Vercel + Supabase
+# Deploy flashcards lên Vercel + Firebase
 
-## A. Tạo Supabase project (5 phút)
+## A. Tạo Firebase project (5 phút)
 
-1. Vào https://supabase.com → Sign up (Google/GitHub đăng nhập 1 click)
-2. New project → đặt tên (vd: `flashcards`), password (lưu lại), region: **Southeast Asia (Singapore)**
-3. Đợi ~1 phút khởi tạo
-4. Trong Dashboard → **SQL Editor** → New query → paste toàn bộ nội dung `schema.sql` → **Run**
-5. Lấy credentials: Dashboard → **Project Settings** → **API**, copy:
-   - `Project URL` → paste vào `supabase-config.js` thay `PLACEHOLDER_SUPABASE_URL`
-   - `anon public` key → paste thay `PLACEHOLDER_SUPABASE_ANON_KEY`
-6. Test local: mở `index.html` → nút **"Đăng nhập"** xuất hiện ở góc phải header
+1. Vào https://console.firebase.google.com → **Add project**
+2. **Project name**: `japanese-flashcards` (hoặc tên bạn thích) → Continue
+3. **Google Analytics**: tắt cho gọn → Create project → đợi ~30s
 
-## B. Cấu hình Auth (magic link)
+## B. Đăng ký Web app
 
-1. Dashboard → **Authentication** → **Providers** → bật **Email** (mặc định đã bật)
-2. Dashboard → **Authentication** → **URL Configuration** → **Site URL**: tạm điền `http://localhost` cho test
-3. (Sau khi có URL Vercel ở bước D, quay lại đổi Site URL thành URL thật của Vercel để magic link redirect đúng)
+1. Trong project Firebase → click icon **`</>`** (Add app → Web)
+2. **App nickname**: `flashcards-web` → **Register app**
+3. Hiện cấu hình `firebaseConfig` — **copy 6 giá trị** (apiKey, authDomain, ...)
+4. Paste vào `firebase-config.js`, thay 6 PLACEHOLDER
+5. Skip "Add Firebase SDK" / "Install Firebase CLI" — đã có sẵn trong code
 
-## C. Push code lên GitHub
+## C. Bật Email Link Authentication
+
+1. Trong Firebase Console → **Build → Authentication** → **Get started**
+2. Tab **Sign-in method** → **Email/Password** → **Enable**:
+   - Bật toggle **Email/Password**
+   - Bật cả toggle **Email link (passwordless sign-in)** (quan trọng — đây là cách app dùng)
+   - **Save**
+3. Tab **Settings → Authorized domains** — thêm:
+   - `japanese-flashcards-ashy.vercel.app`
+   - (`localhost` đã có sẵn cho test local)
+
+## D. Tạo Firestore database
+
+1. Sidebar → **Build → Firestore Database** → **Create database**
+2. **Location**: `asia-southeast1 (Singapore)` — gần Việt Nam
+3. **Start in production mode** → Next → Enable
+4. Sau khi database tạo xong, vào tab **Rules** → xoá toàn bộ → paste nội dung file `firestore.rules` (xem bên dưới) → **Publish**
+
+## E. Update code + push GitHub
 
 ```bash
 cd /Users/myho/Documents/flashcards
-git init
-git add -A
-git commit -m "Initial flashcards app with Supabase sync"
+git add firebase-config.js
+git commit -m "Add Firebase credentials"
+git push
 ```
 
-Tạo repo trên GitHub (https://github.com/new) tên `flashcards`, rồi:
+Vercel auto-redeploy ~30s. Refresh URL → nút **Đăng nhập** xuất hiện ở header.
 
-```bash
-git remote add origin https://github.com/<username>/flashcards.git
-git branch -M main
-git push -u origin main
-```
+## F. Đăng nhập thử
 
-## D. Deploy lên Vercel (2 phút)
-
-1. Vào https://vercel.com → Sign up bằng GitHub
-2. **Add New… → Project** → import repo `flashcards`
-3. **Framework Preset**: Other (Vercel tự nhận static site)
-4. **Root Directory**: `./`  (mặc định)
-5. **Build settings**: bỏ trống (không cần build)
-6. Click **Deploy**
-7. ~30s sau bạn có URL: `flashcards-xxx.vercel.app`
-
-## E. Hoàn thiện
-
-1. Quay lại Supabase → **Authentication → URL Configuration**:
-   - **Site URL**: `https://flashcards-xxx.vercel.app`
-   - **Redirect URLs**: thêm `https://flashcards-xxx.vercel.app/**`
-2. Mở URL Vercel, click **Đăng nhập** → nhập email → check mail → click link
-3. Sau khi đăng nhập, mọi thay đổi (đã thuộc / ★ / thứ tự shuffle) tự sync lên cloud
-4. Mở app trên điện thoại → đăng nhập email cùng → thấy tiến trình của mình
-
-## F. Cập nhật code sau này
-
-Mọi lần edit file local rồi push:
-```bash
-git add -A && git commit -m "..." && git push
-```
-Vercel auto-deploy trong ~30s.
+1. Click **Đăng nhập** → nhập email → **Gửi link đăng nhập**
+2. Mở email → click link "Sign in to japanese-flashcards"
+3. Quay lại app → đã đăng nhập, mọi thay đổi (thuộc/★/shuffle) tự sync sau 2s
+4. Mở app trên điện thoại → đăng nhập cùng email → thấy tiến trình đồng bộ
 
 ## Lưu ý
 
-- `supabase-config.js` chứa **anon key**, key này **an toàn để public** (RLS bảo vệ data) → commit vô GitHub OK
-- Không đăng nhập vẫn dùng được — tiến trình lưu localStorage như cũ
-- Mất mạng vẫn dùng được — sync sẽ retry khi có mạng lại
-- Nếu muốn reset tiến trình cloud: vào Supabase → Table Editor → `user_deck_state` → xóa row tương ứng
+- `firebase-config.js` (apiKey, projectId, ...) **an toàn để public** — Firestore Security Rules bảo vệ data
+- Không đăng nhập vẫn dùng được — tiến trình lưu localStorage
+- Mất mạng vẫn dùng được — sync sẽ retry khi mạng lại
+- Reset tiến trình cloud: Firebase Console → Firestore → `users/{uid}/decks/` → xoá doc
 
 ## Troubleshooting
 
 | Lỗi | Nguyên nhân | Fix |
 |---|---|---|
-| Nút "Đăng nhập" không hiện | `supabase-config.js` còn PLACEHOLDER | Cập nhật URL/anonKey thật |
-| "Email rate limit exceeded" | Gửi magic link quá nhanh | Đợi 1 phút |
-| Click link không quay lại app | Site URL sai trong Supabase | Sửa Site URL ở bước E |
-| Sync không cập nhật | RLS chặn | Verify `schema.sql` chạy thành công, RLS policies tồn tại |
+| Nút "Đăng nhập" không hiện | `firebase-config.js` còn PLACEHOLDER | Cập nhật 6 giá trị thật từ Firebase Console |
+| Click link không quay lại app | Domain chưa authorized | Bước C-3, thêm domain Vercel vào Authorized domains |
+| "Missing or insufficient permissions" | Firestore rules chưa publish | Quay lại bước D-4 |
+| Email không nhận được | Spam folder / Firebase free tier có rate limit | Check spam, đợi 1 phút thử lại |

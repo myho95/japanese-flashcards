@@ -262,8 +262,10 @@
   <div class="practice" id="practice-view"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="cards-n5.js"></script>
 <script src="cards-n4.js"></script>
 <script src="cards-n3.js"></script>
@@ -1058,23 +1060,21 @@
 
   rebuildView();
 
-  // ---- Supabase auth + cloud sync ----
+  // ---- Firebase auth + Firestore cloud sync ----
   const authBtn = $('auth-btn');
   const authModal = $('auth-modal');
   const authClose = $('auth-close');
   const authEmail = $('auth-email');
   const authSubmit = $('auth-submit');
   const authMsg = $('auth-msg');
-  const authTitle = $('auth-title');
-  const authHint = $('auth-hint');
 
-  const supaCfg = window.SUPABASE_CONFIG || {};
-  const supaEnabled = supaCfg.url && supaCfg.anonKey
-    && !supaCfg.url.includes('PLACEHOLDER')
-    && !supaCfg.anonKey.includes('PLACEHOLDER')
-    && window.supabase;
+  const fbCfg = window.FIREBASE_CONFIG || {};
+  const fbEnabled = fbCfg.apiKey
+    && !String(fbCfg.apiKey).includes('PLACEHOLDER')
+    && window.firebase;
 
-  let supa = null;
+  let auth = null;
+  let db = null;
   let currentUser = null;
   let syncTimers = {};
 
@@ -1084,7 +1084,7 @@
   }
   function openAuthModal() {
     setAuthMsg('');
-    authEmail.value = '';
+    authEmail.value = localStorage.getItem('emailForSignIn') || '';
     authModal.style.display = 'flex';
     setTimeout(() => authEmail.focus(), 50);
   }
@@ -1092,7 +1092,7 @@
     authModal.style.display = 'none';
   }
   function updateAuthUI() {
-    if (!supaEnabled) {
+    if (!fbEnabled) {
       authBtn.style.display = 'none';
       return;
     }
@@ -1110,9 +1110,8 @@
 
   async function handleAuthClick() {
     if (currentUser) {
-      // Logout confirm
       if (confirm('Đăng xuất khỏi ' + (currentUser.email || 'tài khoản') + '? Tiến trình sẽ chỉ lưu trong trình duyệt này.')) {
-        await supa.auth.signOut();
+        await auth.signOut();
       }
     } else {
       openAuthModal();
@@ -1128,11 +1127,12 @@
     authSubmit.disabled = true;
     setAuthMsg('Đang gửi…', '');
     try {
-      const { error } = await supa.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.href },
-      });
-      if (error) throw error;
+      const actionCodeSettings = {
+        url: window.location.origin + window.location.pathname,
+        handleCodeInApp: true,
+      };
+      await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+      localStorage.setItem('emailForSignIn', email);
       setAuthMsg('✓ Đã gửi link đăng nhập tới ' + email + '. Mở email và click vào link.', 'success');
     } catch (e) {
       setAuthMsg('Lỗi: ' + (e.message || e), 'error');
@@ -1141,22 +1141,36 @@
     }
   }
 
+  // Handle returning from magic link
+  async function checkSignInLink() {
+    if (!auth.isSignInWithEmailLink(window.location.href)) return;
+    let email = localStorage.getItem('emailForSignIn');
+    if (!email) email = prompt('Vui lòng nhập lại email để xác nhận đăng nhập:');
+    if (!email) return;
+    try {
+      await auth.signInWithEmailLink(email, window.location.href);
+      localStorage.removeItem('emailForSignIn');
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (e) {
+      console.warn('Sign-in link failed:', e);
+      setAuthMsg('Đăng nhập thất bại: ' + (e.message || e), 'error');
+    }
+  }
+
   async function loadFromCloud() {
     if (!currentUser) return;
     try {
-      const { data, error } = await supa
-        .from('user_deck_state')
-        .select('deck, state')
-        .eq('user_id', currentUser.id);
-      if (error) throw error;
+      const snapshot = await db.collection('users').doc(currentUser.uid).collection('decks').get();
       let applied = 0;
-      for (const row of (data || [])) {
-        // Save to localStorage so next loadState() picks it up
-        localStorage.setItem(storageKey(row.deck), JSON.stringify(row.state));
-        applied++;
-      }
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data && data.state) {
+          localStorage.setItem(storageKey(doc.id), JSON.stringify(data.state));
+          applied++;
+        }
+      });
       if (applied) {
-        // Reload state for current deck
         state = loadState(currentDeck);
         if (!state.order || state.order.length !== CARDS.length) {
           state.order = CARDS.map((_, i) => i);
@@ -1173,45 +1187,45 @@
   async function pushDeckState(deck, payload) {
     if (!currentUser) return;
     try {
-      const { error } = await supa
-        .from('user_deck_state')
-        .upsert({ user_id: currentUser.id, deck, state: payload }, { onConflict: 'user_id,deck' });
-      if (error) throw error;
+      await db.collection('users').doc(currentUser.uid)
+        .collection('decks').doc(deck)
+        .set({
+          state: payload,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
     } catch (e) {
       console.warn('Cloud sync failed:', e);
     }
   }
 
-  // Debounced sync (2s after last change per deck)
   window.scheduleCloudSync = function(deck, payload) {
     if (!currentUser) return;
     clearTimeout(syncTimers[deck]);
     syncTimers[deck] = setTimeout(() => pushDeckState(deck, payload), 2000);
   };
 
-  if (supaEnabled) {
-    supa = window.supabase.createClient(supaCfg.url, supaCfg.anonKey);
+  if (fbEnabled) {
+    firebase.initializeApp(fbCfg);
+    auth = firebase.auth();
+    db = firebase.firestore();
+
     authBtn.addEventListener('click', handleAuthClick);
     authClose.addEventListener('click', closeAuthModal);
     authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
     authSubmit.addEventListener('click', submitAuth);
     authEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
 
-    // Initial session check
-    supa.auth.getSession().then(({ data }) => {
-      currentUser = data.session?.user || null;
-      updateAuthUI();
-      if (currentUser) loadFromCloud();
-    });
-
-    // React to login/logout
-    supa.auth.onAuthStateChange((event, session) => {
-      currentUser = session?.user || null;
-      updateAuthUI();
-      if (event === 'SIGNED_IN') {
-        closeAuthModal();
-        loadFromCloud();
-      }
+    // Check if returning from magic link, then init auth state listener
+    checkSignInLink().finally(() => {
+      auth.onAuthStateChanged(user => {
+        const wasLoggedIn = !!currentUser;
+        currentUser = user;
+        updateAuthUI();
+        if (user && !wasLoggedIn) {
+          closeAuthModal();
+          loadFromCloud();
+        }
+      });
     });
   } else {
     updateAuthUI();  // hides button when not configured
