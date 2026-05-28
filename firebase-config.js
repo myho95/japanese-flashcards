@@ -1,14 +1,12 @@
-// Firebase configuration — REPLACE các giá trị PLACEHOLDER bằng config của bạn
-// Lấy ở: Firebase Console → Project Settings (⚙️) → General → Your apps → SDK setup → "Config"
-//
-// Khi còn PLACEHOLDER, app hoạt động ở chế độ localStorage (không cần đăng nhập).
-// Các giá trị này an toàn để public — Firestore Security Rules bảo vệ data.
+// Firebase configuration
+// Project: japanese-flashcards-ebe20
+// Note: các giá trị này an toàn để public — Firestore Security Rules bảo vệ data.
 
 window.FIREBASE_CONFIG = {
-  apiKey:            "PLACEHOLDER_API_KEY",
-  authDomain:        "PLACEHOLDER.firebaseapp.com",
-  projectId:         "PLACEHOLDER",
-  storageBucket:     "PLACEHOLDER.appspot.com",
-  messagingSenderId: "PLACEHOLDER",
-  appId:             "PLACEHOLDER",
+  apiKey:            "AIzaSyAkgeG3l6v2a8wNvVmPhwBulqhJV8MqzvE",
+  authDomain:        "japanese-flashcards-ebe20.firebaseapp.com",
+  projectId:         "japanese-flashcards-ebe20",
+  storageBucket:     "japanese-flashcards-ebe20.firebasestorage.app",
+  messagingSenderId: "243259799801",
+  appId:             "1:243259799801:web:7e19ba6a5778a1f3b70a28",
 };
