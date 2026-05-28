@@ -82,6 +82,37 @@
 
   .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
 
+  /* ---- Require auth: hide all content until logged in ---- */
+  body.require-auth .toolbar,
+  body.require-auth .scene,
+  body.require-auth .controls,
+  body.require-auth .nav,
+  body.require-auth .bar,
+  body.require-auth .footer-hints,
+  body.require-auth .practice,
+  body.auth-pending .toolbar,
+  body.auth-pending .scene,
+  body.auth-pending .controls,
+  body.auth-pending .nav,
+  body.auth-pending .bar,
+  body.auth-pending .footer-hints,
+  body.auth-pending .practice { display: none !important; }
+  body.require-auth .auth-close { display: none; }
+  body.require-auth .auth-foot { display: none; }
+  body.require-auth header h1 { opacity: .5; }
+  body.require-auth .header-right .meta,
+  body.auth-pending .header-right .meta { display: none; }
+  /* During auth check: hide modal too, so no flash */
+  body.auth-pending .auth-modal { display: none !important; }
+  body.auth-pending .auth-btn { visibility: hidden; }
+
+  /* Loading overlay with meme during Firebase auth check */
+  .auth-loading { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  body.auth-pending .auth-loading { display: flex; }
+  .auth-loading img { max-width: 240px; width: 60vw; height: auto; image-rendering: -webkit-optimize-contrast; animation: bob 1.4s ease-in-out infinite; }
+  .auth-loading-caption { color: var(--muted); font-size: 14px; letter-spacing: .3px; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
   /* ---- Auth UI ---- */
   .header-right { display: flex; align-items: center; gap: 12px; }
   .auth-btn { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
@@ -159,7 +190,13 @@
   }
 </style>
 </head>
-<body>
+<body class="auth-pending">
+
+<div id="auth-loading" class="auth-loading">
+  <img src="meme.png" alt="Đang tải…">
+  <div class="auth-loading-caption">Đang kiểm tra đăng nhập…</div>
+</div>
+
 <div class="app">
   <header>
     <h1>動詞 — Flashcards N5 / N4 / N3</h1>
@@ -172,12 +209,13 @@
   <div id="auth-modal" class="auth-modal" style="display:none">
     <div class="auth-modal-inner">
       <button class="auth-close" id="auth-close" aria-label="Đóng">×</button>
-      <h2 id="auth-title">Đăng nhập để đồng bộ</h2>
-      <p class="auth-hint" id="auth-hint">Nhập email — bạn sẽ nhận link đăng nhập (không cần mật khẩu).</p>
-      <input id="auth-email" type="email" placeholder="email@example.com" autocomplete="email">
-      <button id="auth-submit">Gửi link đăng nhập</button>
+      <h2 id="auth-title">Đăng nhập</h2>
+      <p class="auth-hint" id="auth-hint">Nhập tên + mật khẩu 6 số để đồng bộ tiến trình giữa các thiết bị.</p>
+      <input id="auth-username" type="text" placeholder="Tên người dùng (vd: Thiện)" autocomplete="username">
+      <input id="auth-password" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Mật khẩu 6 chữ số" autocomplete="current-password">
+      <button id="auth-submit">Đăng nhập</button>
       <div id="auth-msg" class="auth-msg"></div>
-      <p class="auth-foot">Không đăng nhập cũng dùng được — tiến trình lưu trong trình duyệt.</p>
+      <p class="auth-foot">Lần đầu đăng nhập với tên + mật khẩu sẽ tự đăng ký. Đăng nhập tự duy trì cho tới khi bạn bấm "Đăng xuất".</p>
     </div>
   </div>
 
@@ -1060,11 +1098,12 @@
 
   rebuildView();
 
-  // ---- Firebase auth + Firestore cloud sync ----
+  // ---- Firebase auth (username + 6-digit password) + Firestore sync ----
   const authBtn = $('auth-btn');
   const authModal = $('auth-modal');
   const authClose = $('auth-close');
-  const authEmail = $('auth-email');
+  const authUsername = $('auth-username');
+  const authPassword = $('auth-password');
   const authSubmit = $('auth-submit');
   const authMsg = $('auth-msg');
 
@@ -1078,15 +1117,39 @@
   let currentUser = null;
   let syncTimers = {};
 
+  // Convert Vietnamese display name → ASCII slug for synthetic email
+  function nameToSlug(name) {
+    const map = {
+      'à':'a','á':'a','ạ':'a','ả':'a','ã':'a','â':'a','ầ':'a','ấ':'a','ậ':'a','ẩ':'a','ẫ':'a','ă':'a','ằ':'a','ắ':'a','ặ':'a','ẳ':'a','ẵ':'a',
+      'è':'e','é':'e','ẹ':'e','ẻ':'e','ẽ':'e','ê':'e','ề':'e','ế':'e','ệ':'e','ể':'e','ễ':'e',
+      'ì':'i','í':'i','ị':'i','ỉ':'i','ĩ':'i',
+      'ò':'o','ó':'o','ọ':'o','ỏ':'o','õ':'o','ô':'o','ồ':'o','ố':'o','ộ':'o','ổ':'o','ỗ':'o','ơ':'o','ờ':'o','ớ':'o','ợ':'o','ở':'o','ỡ':'o',
+      'ù':'u','ú':'u','ụ':'u','ủ':'u','ũ':'u','ư':'u','ừ':'u','ứ':'u','ự':'u','ử':'u','ữ':'u',
+      'ỳ':'y','ý':'y','ỵ':'y','ỷ':'y','ỹ':'y',
+      'đ':'d',
+    };
+    return name.toLowerCase().split('').map(c => map[c] || c).join('')
+      .replace(/[^a-z0-9]+/g, '').slice(0, 32);
+  }
+
+  const SYNTHETIC_DOMAIN = 'japanese-flashcards.app';
+  function usernameToEmail(name) {
+    const slug = nameToSlug(name);
+    return slug + '@' + SYNTHETIC_DOMAIN;
+  }
+
   function setAuthMsg(text, kind) {
     authMsg.textContent = text || '';
     authMsg.className = 'auth-msg' + (kind ? ' ' + kind : '');
   }
   function openAuthModal() {
     setAuthMsg('');
-    authEmail.value = localStorage.getItem('emailForSignIn') || '';
+    authUsername.value = localStorage.getItem('lastUsername') || '';
+    authPassword.value = '';
     authModal.style.display = 'flex';
-    setTimeout(() => authEmail.focus(), 50);
+    setTimeout(() => {
+      (authUsername.value ? authPassword : authUsername).focus();
+    }, 50);
   }
   function closeAuthModal() {
     authModal.style.display = 'none';
@@ -1098,7 +1161,8 @@
     }
     authBtn.style.display = '';
     if (currentUser) {
-      authBtn.textContent = '✓ ' + (currentUser.email || 'Đã đăng nhập');
+      const displayName = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+      authBtn.textContent = '✓ ' + displayName;
       authBtn.classList.add('logged-in');
       authBtn.title = 'Click để đăng xuất';
     } else {
@@ -1110,7 +1174,8 @@
 
   async function handleAuthClick() {
     if (currentUser) {
-      if (confirm('Đăng xuất khỏi ' + (currentUser.email || 'tài khoản') + '? Tiến trình sẽ chỉ lưu trong trình duyệt này.')) {
+      const name = currentUser.displayName || currentUser.email?.split('@')[0] || 'tài khoản';
+      if (confirm('Đăng xuất khỏi "' + name + '"?')) {
         await auth.signOut();
       }
     } else {
@@ -1119,42 +1184,59 @@
   }
 
   async function submitAuth() {
-    const email = (authEmail.value || '').trim();
-    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setAuthMsg('Email không hợp lệ.', 'error');
+    const username = (authUsername.value || '').trim();
+    const password = (authPassword.value || '').trim();
+    if (!username) {
+      setAuthMsg('Vui lòng nhập tên người dùng.', 'error');
       return;
     }
+    if (!/^\d{6}$/.test(password)) {
+      setAuthMsg('Mật khẩu phải là 6 chữ số.', 'error');
+      return;
+    }
+    const slug = nameToSlug(username);
+    if (slug.length < 2) {
+      setAuthMsg('Tên người dùng không hợp lệ (cần ít nhất 2 ký tự chữ/số).', 'error');
+      return;
+    }
+
     authSubmit.disabled = true;
-    setAuthMsg('Đang gửi…', '');
+    setAuthMsg('Đang đăng nhập…', '');
+    const email = usernameToEmail(username);
+
     try {
-      const actionCodeSettings = {
-        url: window.location.origin + window.location.pathname,
-        handleCodeInApp: true,
-      };
-      await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-      localStorage.setItem('emailForSignIn', email);
-      setAuthMsg('✓ Đã gửi link đăng nhập tới ' + email + '. Mở email và click vào link.', 'success');
-    } catch (e) {
-      setAuthMsg('Lỗi: ' + (e.message || e), 'error');
+      // Try sign in first
+      const cred = await auth.signInWithEmailAndPassword(email, password);
+      // Set displayName if missing (e.g. first login session)
+      if (!cred.user.displayName) {
+        try { await cred.user.updateProfile({ displayName: username }); } catch (e) {}
+      }
+      localStorage.setItem('lastUsername', username);
+      setAuthMsg('✓ Đã đăng nhập!', 'success');
+    } catch (signInErr) {
+      // If user doesn't exist, auto-register
+      if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-login-credentials' || signInErr.code === 'auth/invalid-credential') {
+        try {
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          try { await cred.user.updateProfile({ displayName: username }); } catch (e) {}
+          localStorage.setItem('lastUsername', username);
+          setAuthMsg('✓ Đăng ký tài khoản mới thành công!', 'success');
+        } catch (signUpErr) {
+          if (signUpErr.code === 'auth/email-already-in-use') {
+            setAuthMsg('Tên này đã có tài khoản nhưng mật khẩu sai.', 'error');
+          } else {
+            setAuthMsg('Lỗi đăng ký: ' + (signUpErr.message || signUpErr), 'error');
+          }
+        }
+      } else if (signInErr.code === 'auth/wrong-password') {
+        setAuthMsg('Mật khẩu không đúng.', 'error');
+      } else if (signInErr.code === 'auth/too-many-requests') {
+        setAuthMsg('Quá nhiều lần thử. Đợi vài phút rồi thử lại.', 'error');
+      } else {
+        setAuthMsg('Lỗi: ' + (signInErr.message || signInErr), 'error');
+      }
     } finally {
       authSubmit.disabled = false;
-    }
-  }
-
-  // Handle returning from magic link
-  async function checkSignInLink() {
-    if (!auth.isSignInWithEmailLink(window.location.href)) return;
-    let email = localStorage.getItem('emailForSignIn');
-    if (!email) email = prompt('Vui lòng nhập lại email để xác nhận đăng nhập:');
-    if (!email) return;
-    try {
-      await auth.signInWithEmailLink(email, window.location.href);
-      localStorage.removeItem('emailForSignIn');
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } catch (e) {
-      console.warn('Sign-in link failed:', e);
-      setAuthMsg('Đăng nhập thất bại: ' + (e.message || e), 'error');
     }
   }
 
@@ -1204,31 +1286,58 @@
     syncTimers[deck] = setTimeout(() => pushDeckState(deck, payload), 2000);
   };
 
+  function setRequireAuth(yes) {
+    document.body.classList.toggle('require-auth', yes);
+    if (yes) openAuthModal();
+  }
+
   if (fbEnabled) {
     firebase.initializeApp(fbCfg);
     auth = firebase.auth();
     db = firebase.firestore();
 
-    authBtn.addEventListener('click', handleAuthClick);
-    authClose.addEventListener('click', closeAuthModal);
-    authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
-    authSubmit.addEventListener('click', submitAuth);
-    authEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+    // LOCAL persistence — session survives reload + browser close,
+    // only ends with explicit sign-out
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => console.warn('persistence:', e));
 
-    // Check if returning from magic link, then init auth state listener
-    checkSignInLink().finally(() => {
-      auth.onAuthStateChanged(user => {
-        const wasLoggedIn = !!currentUser;
-        currentUser = user;
-        updateAuthUI();
-        if (user && !wasLoggedIn) {
-          closeAuthModal();
-          loadFromCloud();
-        }
-      });
+    // Body starts with auth-pending — content + modal both hidden during initial check
+
+    authBtn.addEventListener('click', handleAuthClick);
+    authClose.addEventListener('click', () => {
+      // Only allow closing if NOT requiring auth (i.e., user is logged in)
+      if (!document.body.classList.contains('require-auth')) closeAuthModal();
+    });
+    authModal.addEventListener('click', (e) => {
+      if (e.target === authModal && !document.body.classList.contains('require-auth')) closeAuthModal();
+    });
+    authSubmit.addEventListener('click', submitAuth);
+    const submitOnEnter = (e) => { if (e.key === 'Enter') submitAuth(); };
+    authUsername.addEventListener('keydown', submitOnEnter);
+    authPassword.addEventListener('keydown', submitOnEnter);
+    // Only allow digits in password field
+    authPassword.addEventListener('input', () => {
+      authPassword.value = authPassword.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    auth.onAuthStateChanged(user => {
+      const wasLoggedIn = !!currentUser;
+      currentUser = user;
+      // First auth check resolved — drop pending state
+      document.body.classList.remove('auth-pending');
+      updateAuthUI();
+      if (user) {
+        setRequireAuth(false);
+        closeAuthModal();
+        if (!wasLoggedIn) loadFromCloud();
+      } else {
+        setRequireAuth(true);
+      }
     });
   } else {
-    updateAuthUI();  // hides button when not configured
+    // Firebase not configured — run as static localStorage app, hide login UI
+    document.body.classList.remove('require-auth');
+    document.body.classList.remove('auth-pending');
+    updateAuthUI();
   }
 </script>
 </body>
