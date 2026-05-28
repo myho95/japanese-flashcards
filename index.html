@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>動詞 — Flashcards N5/N4/N3</title>
+<style>
+  :root {
+    --bg: #f5efe1;         /* sepia cream — giảm chói, dễ nhìn lâu */
+    --panel: #fbf6e9;
+    --panel-soft: #efe7d2;
+    --card: #fdfaf0;        /* giấy ngà */
+    --card-back: #fbf3df;
+    --ink: #3a352b;         /* nâu warm thay vì đen tuyền */
+    --muted: #8a8472;
+    --accent: #c47b9a;      /* hồng nhẹ, ít bão hoà */
+    --good: #6b9b7c;
+    --bad: #c2766b;
+    --border: #e3d9bf;
+    --text: #4a4338;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif; }
+  .app { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; min-height: 100vh; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+  h1 { font-size: 18px; margin: 0; font-weight: 600; letter-spacing: .3px; }
+  .meta { font-size: 13px; color: var(--muted); }
+  .toolbar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(120,100,60,.06); }
+  .toolbar label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .toolbar select, .toolbar input[type="text"] { background: var(--panel-soft); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+  .toolbar input[type="text"] { flex: 1; min-width: 140px; }
+  .toolbar button { background: var(--panel-soft); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .toolbar button:hover { background: #e6dcc1; }
+
+  .scene { perspective: 1200px; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 440px; margin: 4px 0 16px; }
+  .card { width: 100%; max-width: 640px; min-height: 440px; position: relative; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 18px 48px rgba(80,60,30,.12); }
+  .front { background: var(--card); color: var(--ink); }
+  .back { background: var(--card-back); color: var(--ink); transform: rotateY(180deg); }
+  .jp { font-size: 46px; font-weight: 800; line-height: 1.25; word-break: break-word; color: #5a1424; letter-spacing: .5px; text-shadow: 0 1px 0 rgba(90,20,36,.06); }
+  .jp small { font-size: 18px; font-weight: 500; color: #b08a5f; display: block; margin-top: 6px; letter-spacing: .3px; }
+  .particle { margin-top: 14px; font-size: 14px; color: #8a4f6a; background: #ede1d5; padding: 5px 12px; border-radius: 20px; display: inline-block; font-weight: 500; }
+  .example { margin-top: 14px; font-size: 17px; color: #4a4338; line-height: 1.5; padding: 8px 14px; background: #f5ecd6; border-left: 3px solid #d4b88a; border-radius: 6px; max-width: 90%; }
+  .example.vn { background: #f0e5cb; border-left-color: #c47b9a; color: #3a352b; font-style: italic; }
+  .info { margin-top: 14px; padding: 10px 14px; background: #f5ecd6; border-radius: 8px; max-width: 92%; font-size: 14px; line-height: 1.55; color: #3a352b; text-align: left; }
+  .example.second { margin-top: 8px; }
+  .note-group { display: inline-block; margin-top: 12px; padding: 5px 14px; font-size: 13px; font-weight: 700; color: #6b4a1d; background: #e8d8a8; border: 1px solid #d4b878; border-radius: 20px; letter-spacing: .5px; }
+  .note-group.g1 { background: #f0d9c5; border-color: #d4a888; color: #8a4f25; }
+  .note-group.g2 { background: #d9e8de; border-color: #9bbfa8; color: #3f6450; }
+  .note-group.g3 { background: #e8d8e8; border-color: #c5a0c5; color: #6b3f6b; }
+  .illust { width: 90px; height: 90px; border-radius: 16px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 54px; line-height: 1; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05), 0 6px 18px rgba(0,0,0,.08); user-select: none; }
+  .illust.kanji { font-size: 52px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.25); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; }
+  .vn { font-size: 32px; font-weight: 800; line-height: 1.3; white-space: pre-line; color: #1f4d35; letter-spacing: .3px; text-shadow: 0 1px 0 rgba(31,77,53,.05); }
+  .note { margin-top: 14px; font-size: 14px; color: #6e6759; max-height: 140px; overflow: auto; white-space: pre-line; line-height: 1.5; padding: 0 6px; }
+  .hint { position: absolute; bottom: 12px; right: 16px; font-size: 11px; color: #b3a989; opacity: .8; }
+  .audio-btn { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(120,100,60,.15); background: rgba(196,123,154,.15); color: #8a4f6a; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .12s, background .12s; padding: 0; }
+  .audio-btn:hover { background: rgba(196,123,154,.28); transform: scale(1.06); }
+  .audio-btn:active { transform: scale(.94); }
+  .audio-btn.speaking { background: rgba(107,155,124,.25); color: #4a7156; animation: pulse 1s infinite; }
+  .audio-btn[disabled] { opacity: .3; cursor: not-allowed; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(107,155,124,.4); } 50% { box-shadow: 0 0 0 8px rgba(107,155,124,0); } }
+
+  .controls { display: flex; gap: 8px; }
+  .controls button { flex: 1; padding: 14px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; }
+  .controls button.bad { background: #f0d9d3; border-color: #d4a89e; color: #8a4338; }
+  .controls button.good { background: #d9e8de; border-color: #9bbfa8; color: #3f6450; }
+  .controls button.flip { background: #ede1d5; border-color: #d4b88a; color: #8a6b3f; }
+  .controls button.practice-btn { background: #e6dcef; border-color: #b8a5d4; color: #5d3f8a; }
+  .controls button:hover { filter: brightness(.97); }
+
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 8px; }
+  .nav button { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+  .nav button:hover { background: var(--panel-soft); }
+  .progress { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+  .progress b { color: var(--text); }
+  .bar { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--good)); width: 0%; transition: width .3s; }
+
+  .footer-hints { margin-top: 14px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.7; }
+  kbd { background: var(--panel); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: ui-monospace, monospace; color: var(--text); }
+
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+
+  /* ---- Auth UI ---- */
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .auth-btn { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .auth-btn:hover { background: var(--panel-soft); }
+  .auth-btn.logged-in { background: #d9e8de; border-color: #9bbfa8; color: #3f6450; }
+  .sync-indicator { font-size: 11px; color: var(--muted); margin-left: 8px; }
+  .sync-indicator.syncing { color: #8a6b3f; }
+  .sync-indicator.synced { color: #3f6450; }
+  .sync-indicator.error { color: #8a4338; }
+
+  .auth-modal { position: fixed; inset: 0; background: rgba(60, 50, 30, .35); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .auth-modal-inner { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; max-width: 380px; width: 100%; box-shadow: 0 20px 50px rgba(60,40,20,.25); }
+  .auth-close { position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 22px; cursor: pointer; color: var(--muted); width: 30px; height: 30px; line-height: 1; }
+  .auth-close:hover { color: var(--text); }
+  .auth-modal h2 { margin: 0 0 8px; font-size: 18px; color: var(--text); }
+  .auth-hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+  .auth-modal input { width: 100%; padding: 10px 12px; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+  .auth-modal button#auth-submit { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .auth-modal button#auth-submit:hover { filter: brightness(1.05); }
+  .auth-modal button#auth-submit[disabled] { opacity: .5; cursor: not-allowed; }
+  .auth-msg { font-size: 13px; min-height: 18px; margin-top: 10px; line-height: 1.5; }
+  .auth-msg.success { color: #3f6450; }
+  .auth-msg.error { color: #8a4338; }
+  .auth-foot { font-size: 12px; color: var(--muted); margin: 16px 0 0; text-align: center; }
+
+  /* ---- Practice mode ---- */
+  body.practice-mode .scene,
+  body.practice-mode .controls,
+  body.practice-mode .nav,
+  body.practice-mode .bar,
+  body.practice-mode .footer-hints { display: none; }
+  body:not(.practice-mode) .practice { display: none; }
+  .practice { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin: 4px 0 16px; box-shadow: 0 2px 10px rgba(120,100,60,.05); }
+  .practice .ph { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .practice .ph .title { font-weight: 700; font-size: 16px; color: var(--text); }
+  .practice .ph .pos { font-size: 13px; color: var(--muted); }
+  .practice .qtype { display: inline-block; padding: 3px 10px; background: #ede1d5; color: #6b4a1d; border-radius: 14px; font-size: 12px; font-weight: 600; margin-bottom: 10px; letter-spacing: .3px; }
+  .practice .q-prompt { font-size: 22px; line-height: 1.5; color: var(--ink); font-weight: 600; margin-bottom: 6px; }
+  .practice .q-hint { font-size: 14px; color: #8a7a5c; margin-bottom: 14px; font-style: italic; }
+  .practice .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .practice .q-options button { padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 18px; color: var(--ink); font-weight: 600; transition: background .15s; }
+  .practice .q-options button:hover:not([disabled]) { background: #f5ecd6; }
+  .practice .q-options button.correct { background: #d9e8de; border-color: #6ee7b7; color: #3f6450; }
+  .practice .q-options button.wrong { background: #f0d9d3; border-color: #d4a89e; color: #8a4338; }
+  .practice .q-options button[disabled] { cursor: default; }
+  .practice .q-answer { min-height: 56px; padding: 10px; background: #fdf6e3; border: 1px dashed var(--border); border-radius: 10px; margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .practice .q-answer .placeholder { color: #b8a989; font-style: italic; font-size: 14px; }
+  .practice .q-bank { display: flex; gap: 6px; flex-wrap: wrap; }
+  .practice .chip { padding: 6px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; cursor: pointer; font-size: 17px; color: var(--ink); font-family: inherit; transition: background .12s, transform .12s; }
+  .practice .chip:hover { background: #f5ecd6; }
+  .practice .chip.used { opacity: .35; cursor: default; }
+  .practice .chip.in-answer { background: #ede1d5; border-color: #d4b878; }
+  .practice .q-feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.55; }
+  .practice .q-feedback.correct { background: #d9e8de; color: #3f6450; border-left: 3px solid #6b9b7c; }
+  .practice .q-feedback.wrong { background: #f0d9d3; color: #8a4338; border-left: 3px solid #c2766b; }
+  .practice .q-feedback .correct-answer { display: block; margin-top: 6px; font-weight: 600; color: var(--ink); }
+  .practice .actions { display: flex; gap: 8px; justify-content: space-between; margin-top: 16px; }
+  .practice .actions button { padding: 10px 18px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .practice .actions button.secondary { background: var(--panel-soft); color: var(--text); }
+  .practice .actions button[disabled] { opacity: .4; cursor: not-allowed; }
+  .practice .result { text-align: center; padding: 24px 16px; }
+  .practice .result .score { font-size: 48px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .practice .result .label { font-size: 16px; color: var(--muted); margin-bottom: 20px; }
+  .practice .result .breakdown { font-size: 14px; color: var(--text); margin-bottom: 20px; line-height: 1.7; }
+  .practice .progress-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
+  .practice .progress-dots .dot { width: 18px; height: 4px; border-radius: 2px; background: var(--border); }
+  .practice .progress-dots .dot.done.correct { background: var(--good); }
+  .practice .progress-dots .dot.done.wrong { background: var(--bad); }
+  .practice .progress-dots .dot.current { background: var(--accent); }
+
+  @media (max-width: 480px) {
+    .jp { font-size: 28px; } .vn { font-size: 22px; }
+    .face { padding: 20px; }
+    h1 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>動詞 — Flashcards N5 / N4 / N3</h1>
+    <div class="header-right">
+      <div class="meta" id="meta">…</div>
+      <button id="auth-btn" class="auth-btn" style="display:none">Đăng nhập</button>
+    </div>
+  </header>
+
+  <div id="auth-modal" class="auth-modal" style="display:none">
+    <div class="auth-modal-inner">
+      <button class="auth-close" id="auth-close" aria-label="Đóng">×</button>
+      <h2 id="auth-title">Đăng nhập để đồng bộ</h2>
+      <p class="auth-hint" id="auth-hint">Nhập email — bạn sẽ nhận link đăng nhập (không cần mật khẩu).</p>
+      <input id="auth-email" type="email" placeholder="email@example.com" autocomplete="email">
+      <button id="auth-submit">Gửi link đăng nhập</button>
+      <div id="auth-msg" class="auth-msg"></div>
+      <p class="auth-foot">Không đăng nhập cũng dùng được — tiến trình lưu trong trình duyệt.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label>Deck
+      <select id="deck">
+        <optgroup label="動詞 — Động từ">
+          <option value="N5">N5 動詞 (cơ bản)</option>
+          <option value="N4">N4 動詞 (sơ cấp)</option>
+          <option value="N3">N3 動詞 (trung cấp)</option>
+        </optgroup>
+        <optgroup label="形容詞 — Tính từ">
+          <option value="N5-Adj">N5 形容詞</option>
+          <option value="N4-Adj">N4 形容詞</option>
+        </optgroup>
+        <optgroup label="文法 — Ngữ pháp">
+          <option value="N5-Gram">N5 文法</option>
+        </optgroup>
+      </select>
+    </label>
+    <label>Hướng
+      <select id="direction">
+        <option value="jp2vn">日本語 → Tiếng Việt</option>
+        <option value="vn2jp">Tiếng Việt → 日本語</option>
+      </select>
+    </label>
+    <label>Hiện
+      <select id="filter">
+        <option value="all">Tất cả</option>
+        <option value="unknown">Chưa thuộc</option>
+        <option value="known">Đã thuộc</option>
+        <option value="starred">Đã đánh dấu ★</option>
+      </select>
+    </label>
+    <input id="search" type="text" placeholder="Tìm…">
+    <button id="shuffle" title="Trộn ngẫu nhiên">🔀 Trộn</button>
+    <button id="reset" title="Xoá tiến trình">↺ Reset</button>
+  </div>
+
+  <div class="scene">
+    <div class="card" id="card">
+      <div class="face front">
+        <button class="audio-btn" id="audio-front" title="Phát âm (P)" aria-label="Phát âm">🔊</button>
+        <div id="illust" class="illust"></div>
+        <div id="front-content" class="jp"></div>
+        <div id="front-example" class="example" style="display:none"></div>
+        <div class="hint">Bấm 2 lần hoặc <kbd>Space</kbd> để lật</div>
+      </div>
+      <div class="face back">
+        <button class="audio-btn" id="audio-back" title="Phát âm (P)" aria-label="Phát âm">🔊</button>
+        <div id="back-content" class="vn"></div>
+        <div id="note-group" class="note-group"></div>
+        <div id="back-info" class="info" style="display:none"></div>
+        <div id="back-particle" class="particle" style="display:none"></div>
+        <div id="back-example" class="example vn" style="display:none"></div>
+        <div id="back-example2" class="example vn second" style="display:none"></div>
+        <div id="note" class="note"></div>
+        <div class="hint">Bấm 2 lần hoặc <kbd>Space</kbd> để lật</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="bad" id="btn-bad" title="Chưa thuộc (J)">✗ Chưa thuộc</button>
+    <button class="practice-btn" id="practice" title="Luyện tập" style="display:none">🧠 Luyện tập</button>
+    <button class="flip" id="btn-flip" title="Lật thẻ (Space)">↻ Lật thẻ</button>
+    <button class="good" id="btn-good" title="Thuộc rồi (K)">✓ Thuộc</button>
+  </div>
+
+  <div class="nav">
+    <button id="prev">← Trước</button>
+    <button id="star">☆ Đánh dấu</button>
+    <div class="progress"><b id="pos">0</b> / <span id="total">0</span> · Đã thuộc <b id="known">0</b> · ★ <b id="starred">0</b></div>
+    <button id="next">Sau →</button>
+  </div>
+  <div class="bar"><div id="bar-fill"></div></div>
+
+  <div class="footer-hints">
+    <kbd>Space</kbd> lật · <kbd>←</kbd> <kbd>→</kbd> di chuyển · <kbd>J</kbd> chưa thuộc · <kbd>K</kbd> đã thuộc · <kbd>P</kbd> phát âm · <kbd>S</kbd> ★ · <kbd>R</kbd> trộn
+  </div>
+
+  <div class="practice" id="practice-view"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="cards-n5.js"></script>
+<script src="cards-n4.js"></script>
+<script src="cards-n3.js"></script>
+<script src="cards-n5adj.js"></script>
+<script src="cards-n4adj.js"></script>
+<script src="cards-n5gram.js"></script>
+<script>
+  // ---- deck selection ----
+  const DECKS_AVAILABLE = ['N5', 'N4', 'N3', 'N5-Adj', 'N4-Adj', 'N5-Gram'];
+  let currentDeck = localStorage.getItem('verbs_current_deck') || 'N5';
+  if (!DECKS_AVAILABLE.includes(currentDeck)) currentDeck = 'N5';
+  let CARDS = window.DECKS[currentDeck] || [];
+
+  function storageKey(deck) { return `verbs_state_v1__${deck}`; }
+
+  // ---- state ----
+  let state = loadState(currentDeck);
+
+  function loadState(deck) {
+    try {
+      const s = JSON.parse(localStorage.getItem(storageKey(deck))) || {};
+      return {
+        known: new Set(s.known || []),
+        starred: new Set(s.starred || []),
+        order: s.order || null,
+        pos: s.pos || 0,
+        direction: s.direction || 'jp2vn',
+        filter: s.filter || 'all',
+      };
+    } catch (e) {
+      return { known: new Set(), starred: new Set(), order: null, pos: 0, direction: 'jp2vn', filter: 'all' };
+    }
+  }
+  function serializeState() {
+    return {
+      known: [...state.known],
+      starred: [...state.starred],
+      order: state.order,
+      pos: state.pos,
+      direction: state.direction,
+      filter: state.filter,
+    };
+  }
+  function saveState() {
+    const payload = serializeState();
+    localStorage.setItem(storageKey(currentDeck), JSON.stringify(payload));
+    // Cloud sync (debounced) if logged in
+    if (typeof scheduleCloudSync === 'function') scheduleCloudSync(currentDeck, payload);
+  }
+
+  // ---- elements ----
+  const $ = (id) => document.getElementById(id);
+  const card = $('card');
+  const frontEl = $('front-content');
+  const backEl = $('back-content');
+  const noteEl = $('note');
+  const posEl = $('pos');
+  const totalEl = $('total');
+  const knownEl = $('known');
+  const starredEl = $('starred');
+  const barEl = $('bar-fill');
+  const metaEl = $('meta');
+  const directionEl = $('direction');
+  const filterEl = $('filter');
+  const searchEl = $('search');
+  const starBtn = $('star');
+  const deckEl = $('deck');
+
+  deckEl.value = currentDeck;
+  directionEl.value = state.direction;
+  filterEl.value = state.filter;
+
+  // ---- Illustration (emoji map + kanji fallback) ----
+  // Each entry: [emoji, [JP-substrings...], [VN-keywords (lowercased)...]]
+  const EMOJI_MAP = [
+    ['👥', ['会議','打合','打ち合わせ','議事','打ち合せ','陳情','会合','商談','面談','交渉','歓談'], ['họp','hội nghị','cuộc họp','đàm phán','thỉnh cầu','tán gẫu','trò chuyện']],
+    ['📝', ['契約','署名','記入','記録','申請','書類','文書','文章','作成','起草','草案','原稿'], ['hợp đồng','kí','ký','đơn','văn bản','tài liệu','viết','soạn','bản thảo']],
+    ['📄', ['書','報告','レポート','資料','配付','配布','回覧','文書','議事録'], ['báo cáo','biên bản','tài liệu','phân phát','chuyền']],
+    ['✅', ['決裁','承認','許可','合意','賛成','賛同','可決','採択','認可','OK'], ['phê duyệt','chấp thuận','đồng ý','tán thành','thông qua']],
+    ['❌', ['却下','拒否','否決','反対','拒絶','断る','禁止'], ['từ chối','bác bỏ','phản đối','cấm']],
+    ['💰', ['金','円','給料','賃金','報酬','支払','支出','収入','利益','黒字','財','費','料金','コスト','予算','金額','資金'], ['tiền','lương','thu nhập','lợi nhuận','chi phí','ngân sách','phí']],
+    ['📉', ['赤字','損失','下落','減少','下降','低下','悪化','不況'], ['lỗ','thiệt hại','giảm','xuống','suy thoái','tệ đi','bù vào phần lỗ']],
+    ['📈', ['黒字','利益','上昇','増加','成長','向上','改善','好況','業績'], ['lợi nhuận','tăng','tăng trưởng','cải thiện']],
+    ['📊', ['決算','財務','会計','統計','データ','分析','調査','精査','人事考課'], ['tài chính','thống kê','phân tích','điều tra','đánh giá']],
+    ['🖨️', ['印刷','プリント','コピー','複写'], ['in','sao chép','photo']],
+    ['🔖', ['捺印','印鑑','押印','押し印','印章','スタンプ','判子'], ['đóng dấu','con dấu']],
+    ['📧', ['メール','電子','メッセージ','送信','受信','通信'], ['email','tin nhắn','gửi','nhận','liên lạc']],
+    ['📞', ['電話','通話','コール','着信','発信'], ['điện thoại','gọi','cuộc gọi']],
+    ['💬', ['発言','話','会話','対話','討論','議論','コメント','言','述べる'], ['nói','phát biểu','bàn luận','tranh luận','bình luận']],
+    ['🤝', ['協力','協定','協議','合意','提携','握手','連携','合作'], ['hợp tác','thỏa thuận','bắt tay','liên kết']],
+    ['🙌', ['万歳','歓喜','喜び','祝','祝賀','成功','達成','歓声'], ['vạn tuế','vui mừng','chúc mừng','thành công','hoan hô']],
+    ['👏', ['拍手','一本締め','称賛','賞賛','賛美'], ['vỗ tay','khen ngợi','tán dương']],
+    ['😠', ['叱責','怒','激怒','非難','叱る','怒鳴','文句','苦情'], ['khiển trách','tức giận','la mắng','càu nhàu','phàn nàn']],
+    ['😢', ['悲','涙','泣','哀','嘆','失望','落胆'], ['buồn','khóc','thất vọng']],
+    ['😊', ['喜','笑','幸','嬉','楽し','満足','安心'], ['vui','cười','hạnh phúc','hài lòng','yên tâm']],
+    ['😰', ['困','悩','心配','不安','焦','緊張','ストレス'], ['lo lắng','lo âu','khó xử','căng thẳng']],
+    ['😲', ['驚','びっくり','仰天','衝撃'], ['ngạc nhiên','bất ngờ','sốc']],
+    ['😴', ['寝','眠','睡眠','就寝'], ['ngủ','say giấc']],
+    ['🏢', ['会社','企業','本社','支社','オフィス','事務所','社内'], ['công ty','văn phòng','trụ sở','chi nhánh']],
+    ['🏠', ['家','住宅','自宅','住む','住居','マンション','アパート'], ['nhà','căn hộ','nhà ở','sống']],
+    ['🏫', ['学校','大学','学生','授業','講義','教室','勉強','学習'], ['trường','học sinh','sinh viên','lớp học','học']],
+    ['🏥', ['病院','医療','医者','看護','診療','診察','治療','患者'], ['bệnh viện','bác sĩ','y tá','khám','điều trị','bệnh nhân']],
+    ['💊', ['薬','医薬','処方','服用'], ['thuốc','kê đơn','uống thuốc']],
+    ['🚗', ['車','自動車','運転','便乗','乗車','タクシー','カー'], ['xe','lái','quá giang','ô tô']],
+    ['✈️', ['飛行機','航空','フライト','出張','空港','離陸','着陸'], ['máy bay','hàng không','sân bay','công tác']],
+    ['🚆', ['電車','列車','新幹線','駅','鉄道'], ['tàu','ga','đường sắt']],
+    ['🚢', ['船','船舶','航海','港'], ['tàu thủy','thuyền','cảng']],
+    ['📦', ['積載','搬入','搬出','運搬','配送','配達','荷物','貨物','商品','製品'], ['vận chuyển','chở','hàng','hàng hóa','sản phẩm','giao hàng']],
+    ['🔨', ['解体','破壊','建設','建築','工事','製造','製作','作る'], ['tháo','phá','xây','xây dựng','sản xuất','chế tạo']],
+    ['⚙️', ['機械','装置','設備','システム','技術','エンジン'], ['máy móc','thiết bị','hệ thống','kỹ thuật']],
+    ['🌐', ['国','国家','国際','世界','海外','グローバル','ウェブ','インターネット','ネット','閲覧'], ['quốc gia','quốc tế','thế giới','toàn cầu','nước ngoài','internet','web']],
+    ['🚩', ['旗','国旗','目標','標識'], ['cờ','mục tiêu','biển báo']],
+    ['⏰', ['時間','時刻','期限','締切','スケジュール','予定','日程'], ['thời gian','hạn','lịch','kế hoạch','deadline']],
+    ['📅', ['日付','カレンダー','月','週','年','日程'], ['ngày','lịch','tháng','tuần','năm']],
+    ['👋', ['出迎え','歓迎','挨拶','見送り','お辞儀','礼'], ['đi đón','chào','tiễn','cúi chào','lễ nghi']],
+    ['🍵', ['もてなす','接待','茶','お茶','給仕','接客'], ['tiếp đãi','trà','phục vụ']],
+    ['🍽️', ['食事','食べる','料理','レストラン','弁当','ランチ','ディナー'], ['ăn','bữa ăn','món','nhà hàng','cơm hộp']],
+    ['🍶', ['酒','飲み会','宴会','乾杯','ビール'], ['rượu','tiệc','cụng ly']],
+    ['🌸', ['花','桜','花見','植物'], ['hoa','anh đào','ngắm hoa']],
+    ['🌧️', ['雨','梅雨','降水'], ['mưa','mùa mưa']],
+    ['☀️', ['晴','太陽','日光','陽'], ['nắng','mặt trời']],
+    ['❤️', ['愛','心','恋','感情','気持ち','思いやり'], ['yêu','tình','cảm xúc','tình cảm']],
+    ['🎯', ['目標','目的','狙','的','標的','ターゲット'], ['mục tiêu','mục đích','nhắm']],
+    ['💡', ['アイデア','発想','考','思いつき','ひらめき','提案'], ['ý tưởng','suy nghĩ','đề xuất','gợi ý']],
+    ['🔑', ['鍵','キー','重要','要点'], ['chìa khóa','quan trọng','then chốt']],
+    ['⚠️', ['警告','注意','危険','危ない','問題','トラブル'], ['cảnh báo','chú ý','nguy hiểm','vấn đề','rắc rối']],
+    ['🚨', ['緊急','非常','救急','一触即発'], ['khẩn cấp','căng']],
+    ['📚', ['本','書籍','読書','文学','図書','参考書','教科書'], ['sách','đọc','tham khảo','giáo trình']],
+    ['✍️', ['書く','記す','メモ','ノート','筆記','記述'], ['ghi chép','viết','ghi chú']],
+    ['🗑️', ['捨てる','廃棄','処分','ゴミ','撤収'], ['vứt','bỏ','rác','xử lý','rút quân','dọn']],
+    ['🔍', ['調査','検索','探す','調べる','調べ','確認','検討','検証','精査'], ['tìm kiếm','điều tra','xem xét','kiểm tra','xác minh']],
+    ['🛠️', ['修理','直す','メンテナンス','整備'], ['sửa','bảo trì','bảo dưỡng']],
+    ['📣', ['発表','宣伝','広告','宣言','告知','報道'], ['phát biểu','quảng cáo','tuyên bố','thông báo','báo chí']],
+    ['👔', ['上司','部長','課長','社長','人事','社員','スタッフ','補佐','秘書','チーム'], ['cấp trên','giám đốc','trưởng phòng','nhân viên','trợ lí','thư ký','đội','nhân sự']],
+    ['👶', ['子供','赤ちゃん','幼児','子'], ['trẻ','em bé']],
+    ['👨‍👩‍👧', ['家族','親','親戚','親子'], ['gia đình','họ hàng','cha mẹ']],
+    ['🐕', ['犬','ペット'], ['chó','thú cưng']],
+    ['🐱', ['猫'], ['mèo']],
+    ['🐟', ['魚','鮮魚'], ['cá']],
+    ['🌳', ['木','森','林','樹'], ['cây','rừng']],
+    ['⛰️', ['山','岳','峰'], ['núi','đỉnh']],
+    ['🌊', ['海','波','洋','水産'], ['biển','sóng','đại dương']],
+    ['💧', ['水','液体','湿'], ['nước','ẩm']],
+    ['🔥', ['火','炎','燃','燃料'], ['lửa','cháy','nhiên liệu']],
+    ['⚡', ['電気','電力','エネルギー','発電'], ['điện','năng lượng']],
+    ['🏆', ['優勝','勝利','賞','受賞','表彰'], ['chiến thắng','giải thưởng','vô địch']],
+    ['🎉', ['祝','祭','イベント','パーティー','行事','式典'], ['lễ hội','tiệc','sự kiện','nghi lễ']],
+    ['🌍', ['環境','エコ','地球','自然'], ['môi trường','trái đất','thiên nhiên']],
+    ['📍', ['場所','位置','地点','現地','現場'], ['địa điểm','vị trí','hiện trường']],
+    ['🚪', ['出る','入る','退出','入場','入室'], ['ra','vào','rời','vào phòng']],
+    ['🏃', ['走','急ぐ','駆ける','ジョギング'], ['chạy','vội']],
+    ['🚶', ['歩','散歩','歩行'], ['đi bộ','tản bộ']],
+    ['😌', ['安心','落ち着','冷静','穏やか'], ['yên tâm','bình tĩnh','dịu']],
+    ['🤔', ['考え','思考','検討','悩む'], ['suy nghĩ','cân nhắc','băn khoăn']],
+    ['🛒', ['買う','購入','買い物','ショッピング','販売','売る'], ['mua','bán','mua sắm']],
+    ['🎓', ['卒業','学位','教育','研修','訓練'], ['tốt nghiệp','học vị','đào tạo','huấn luyện']],
+    ['📺', ['テレビ','番組','映像','映画'], ['tivi','chương trình','phim']],
+    ['🎵', ['音楽','歌','曲','演奏'], ['âm nhạc','bài hát','biểu diễn']],
+    ['🤐', ['秘密','機密','内緒','黙','沈黙','言わぬ'], ['bí mật','im lặng','không nói']],
+  ];
+
+  const KANJI_GRADIENTS = [
+    ['#ff9a9e','#fad0c4'], ['#a18cd1','#fbc2eb'], ['#fbc2eb','#a6c1ee'],
+    ['#84fab0','#8fd3f4'], ['#fccb90','#d57eeb'], ['#e0c3fc','#8ec5fc'],
+    ['#f093fb','#f5576c'], ['#4facfe','#00f2fe'], ['#43e97b','#38f9d7'],
+    ['#fa709a','#fee140'], ['#30cfd0','#330867'], ['#a8edea','#fed6e3'],
+    ['#ff9966','#ff5e62'], ['#56ab2f','#a8e063'], ['#614385','#516395'],
+    ['#eecda3','#ef629f'], ['#fbc7d4','#9796f0'], ['#74b9ff','#a29bfe'],
+    ['#fdbb2d','#22c1c0'], ['#ee9ca7','#ffdde1'],
+  ];
+
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  function pickEmoji(jp, vn) {
+    const vnLower = (vn || '').toLowerCase();
+    for (const [emoji, jpKeys, vnKeys] of EMOJI_MAP) {
+      for (const k of jpKeys) if (jp.includes(k)) return emoji;
+      for (const k of vnKeys) if (vnLower.includes(k)) return emoji;
+    }
+    return null;
+  }
+
+  function firstKanji(jp) {
+    const m = jp.match(/[一-龯㐀-䶿]/);
+    if (m) return m[0];
+    const m2 = jp.match(/[぀-ゟ゠-ヿ]/);
+    return m2 ? m2[0] : (jp[0] || '?');
+  }
+
+  function renderIllustration(c) {
+    const el = $('illust');
+    // Grammar cards: no illustration at all
+    if (c.grammar) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = 'flex';
+    // Prefer per-card emoji (specific illustration), then keyword map, then kanji fallback
+    const emoji = c.emoji || pickEmoji(c.jp, c.vn);
+    if (emoji) {
+      el.className = 'illust';
+      el.style.background = 'linear-gradient(135deg,#f5ecd6,#ede1d5)';
+      el.textContent = emoji;
+    } else {
+      const k = firstKanji(splitFurigana(c.jp).main);
+      const grad = KANJI_GRADIENTS[hashStr(c.jp) % KANJI_GRADIENTS.length];
+      el.className = 'illust kanji';
+      el.style.background = `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`;
+      el.textContent = k;
+    }
+  }
+
+  // ---- Japanese TTS via Web Speech API ----
+  const audioFront = $('audio-front');
+  const audioBack = $('audio-back');
+  let jpVoice = null;
+  const ttsSupported = 'speechSynthesis' in window;
+
+  function pickJapaneseVoice() {
+    if (!ttsSupported) return;
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    // Prefer local macOS voices (Kyoko/Otoya), then any ja voice
+    jpVoice = voices.find(v => /ja[-_]?JP/i.test(v.lang) && v.localService)
+           || voices.find(v => /ja[-_]?JP/i.test(v.lang))
+           || voices.find(v => /^ja/i.test(v.lang))
+           || null;
+  }
+  if (ttsSupported) {
+    pickJapaneseVoice();
+    speechSynthesis.onvoiceschanged = pickJapaneseVoice;
+  } else {
+    audioFront.disabled = true;
+    audioBack.disabled = true;
+    audioFront.title = audioBack.title = 'Trình duyệt không hỗ trợ TTS';
+  }
+
+  function cleanForTTS(jp) {
+    const { main, reading } = splitFurigana(jp);
+    let text = main || jp;
+    // strip placeholder symbols and bracketed annotations
+    text = text.replace(/[～~]/g, '').replace(/\s+/g, ' ').trim();
+    // if main is empty/symbols-only, fall back to reading
+    if (!text && reading) text = reading;
+    return text;
+  }
+
+  function speakCurrent() {
+    if (!ttsSupported || !view.length) return;
+    const c = CARDS[view[state.pos]];
+    const text = cleanForTTS(c.jp);
+    if (!text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      if (jpVoice) u.voice = jpVoice;
+      u.rate = 0.95;
+      u.pitch = 1;
+      const setSpeaking = (on) => {
+        audioFront.classList.toggle('speaking', on);
+        audioBack.classList.toggle('speaking', on);
+      };
+      u.onstart = () => setSpeaking(true);
+      u.onend = () => setSpeaking(false);
+      u.onerror = () => setSpeaking(false);
+      speechSynthesis.speak(u);
+    } catch (e) { /* noop */ }
+  }
+
+  audioFront.addEventListener('click', (e) => { e.stopPropagation(); speakCurrent(); });
+  audioBack.addEventListener('click', (e) => { e.stopPropagation(); speakCurrent(); });
+
+  // ---- index everything; CARDS comes from window.DECKS[currentDeck] ----
+  function updateMeta() {
+    let noun = 'động từ';
+    if (currentDeck.endsWith('-Adj')) noun = 'tính từ';
+    else if (currentDeck.endsWith('-Gram')) noun = 'mẫu ngữ pháp';
+    metaEl.textContent = `${currentDeck} · ${CARDS.length} ${noun}`;
+  }
+  updateMeta();
+  if (!state.order || state.order.length !== CARDS.length) {
+    state.order = CARDS.map((_, i) => i);
+  }
+
+  function switchDeck(name) {
+    if (!DECKS_AVAILABLE.includes(name) || name === currentDeck) return;
+    saveState();
+    currentDeck = name;
+    localStorage.setItem('verbs_current_deck', currentDeck);
+    CARDS = window.DECKS[currentDeck] || [];
+    state = loadState(currentDeck);
+    if (!state.order || state.order.length !== CARDS.length) {
+      state.order = CARDS.map((_, i) => i);
+    }
+    directionEl.value = state.direction;
+    filterEl.value = state.filter;
+    searchEl.value = '';
+    searchTerm = '';
+    updateMeta();
+    rebuildView();
+    if (ttsSupported) speechSynthesis.cancel();
+    if (typeof updatePracticeButton === 'function') updatePracticeButton();
+  }
+
+  let view = []; // indices into CARDS, after filter+search
+  let searchTerm = '';
+
+  function rebuildView() {
+    const term = searchTerm.trim().toLowerCase();
+    view = state.order.filter((i) => {
+      const c = CARDS[i];
+      if (state.filter === 'unknown' && state.known.has(i)) return false;
+      if (state.filter === 'known' && !state.known.has(i)) return false;
+      if (state.filter === 'starred' && !state.starred.has(i)) return false;
+      if (term) {
+        const hay = (c.jp + ' ' + c.vn + ' ' + (c.note || '')).toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      return true;
+    });
+    if (view.length === 0) {
+      state.pos = 0;
+    } else if (state.pos >= view.length) {
+      state.pos = 0;
+    }
+    render();
+  }
+
+  // strip furigana like "/～ほてん/" off the front for cleaner display, but keep as small text
+  function splitFurigana(jp) {
+    const m = jp.match(/^(.+?)\s*[/／](.+?)[/／]\s*$/);
+    if (m) return { main: m[1].trim(), reading: m[2].trim() };
+    const m2 = jp.match(/^(.+?)\s*[（(](.+?)[)）]\s*$/);
+    if (m2 && /^[ぁ-ゟー～]+$/.test(m2[2].trim())) return { main: m2[1].trim(), reading: m2[2].trim() };
+    return { main: jp, reading: '' };
+  }
+
+  function render() {
+    card.classList.remove('flipped');
+    totalEl.textContent = view.length;
+    knownEl.textContent = state.known.size;
+    starredEl.textContent = state.starred.size;
+    barEl.style.width = view.length ? `${((state.pos + 1) / view.length) * 100}%` : '0%';
+
+    const frontExample = $('front-example');
+    const backParticle = $('back-particle');
+    const backExample = $('back-example');
+    const backExample2 = $('back-example2');
+    const backInfo = $('back-info');
+    const noteGroupEl = $('note-group');
+
+    if (view.length === 0) {
+      frontEl.innerHTML = '<div class="empty">Không có thẻ nào khớp.<br>Thử đổi bộ lọc hoặc xoá ô tìm.</div>';
+      backEl.textContent = '';
+      noteEl.textContent = '';
+      noteGroupEl.textContent = '';
+      frontExample.style.display = 'none';
+      backParticle.style.display = 'none';
+      backExample.style.display = 'none';
+      backExample2.style.display = 'none';
+      backInfo.style.display = 'none';
+      posEl.textContent = 0;
+      starBtn.textContent = '☆ Đánh dấu';
+      $('illust').textContent = '';
+      $('illust').className = 'illust';
+      $('illust').style.background = '';
+      return;
+    }
+
+    const idx = view[state.pos];
+    const c = CARDS[idx];
+    posEl.textContent = state.pos + 1;
+    renderIllustration(c);
+
+    if (c.grammar) {
+      // ---- Grammar card layout ----
+      // Front: pattern only (no example)
+      const { main, reading } = splitFurigana(c.jp);
+      frontEl.innerHTML = escapeHtml(main) + (reading ? `<small>${escapeHtml(reading)}</small>` : '');
+      backEl.textContent = c.vn;
+      frontExample.style.display = 'none';
+      backParticle.style.display = 'none';
+      // Back: info + ex1 (jp + vn) + ex2 (jp + vn)
+      if (c.info) { backInfo.textContent = c.info; backInfo.style.display = 'block'; }
+      else backInfo.style.display = 'none';
+      if (c.ex_jp) {
+        backExample.innerHTML = escapeHtml(c.ex_jp) + '<br><span style="color:#6b5a48">→ ' + escapeHtml(c.ex_vn || '') + '</span>';
+        backExample.style.display = 'block';
+      } else backExample.style.display = 'none';
+      if (c.ex_jp2) {
+        backExample2.innerHTML = escapeHtml(c.ex_jp2) + '<br><span style="color:#6b5a48">→ ' + escapeHtml(c.ex_vn2 || '') + '</span>';
+        backExample2.style.display = 'block';
+      } else backExample2.style.display = 'none';
+    } else if (state.direction === 'jp2vn') {
+      const { main, reading } = splitFurigana(c.jp);
+      frontEl.innerHTML = escapeHtml(main) + (reading ? `<small>${escapeHtml(reading)}</small>` : '');
+      backEl.textContent = c.vn;
+      backInfo.style.display = 'none';
+      backExample2.style.display = 'none';
+      // Front: JP example only
+      if (c.ex_jp) { frontExample.textContent = '「' + c.ex_jp + '」'; frontExample.style.display = 'block'; }
+      else frontExample.style.display = 'none';
+      // Back: particle + VN translation
+      if (c.particle) { backParticle.textContent = c.particle; backParticle.style.display = 'inline-block'; }
+      else backParticle.style.display = 'none';
+      if (c.ex_vn) { backExample.textContent = '"' + c.ex_vn + '"'; backExample.style.display = 'block'; }
+      else backExample.style.display = 'none';
+    } else {
+      frontEl.textContent = c.vn;
+      const { main, reading } = splitFurigana(c.jp);
+      backEl.innerHTML = escapeHtml(main) + (reading ? `<small>${escapeHtml(reading)}</small>` : '');
+      backInfo.style.display = 'none';
+      backExample2.style.display = 'none';
+      // Reverse: front VN example, back particle + JP example
+      if (c.ex_vn) { frontExample.textContent = '"' + c.ex_vn + '"'; frontExample.style.display = 'block'; }
+      else frontExample.style.display = 'none';
+      if (c.particle) { backParticle.textContent = c.particle; backParticle.style.display = 'inline-block'; }
+      else backParticle.style.display = 'none';
+      if (c.ex_jp) { backExample.textContent = '「' + c.ex_jp + '」'; backExample.style.display = 'block'; }
+      else backExample.style.display = 'none';
+    }
+    noteGroupEl.textContent = c.note || '';
+    let groupCls = '';
+    if (c.note) {
+      if (c.note.includes('Nhóm 1') || c.note.includes('-い')) groupCls = 'g1';
+      else if (c.note.includes('Nhóm 2') || c.note.includes('-な')) groupCls = 'g2';
+      else if (c.note.includes('Nhóm 3')) groupCls = 'g3';
+    }
+    noteGroupEl.className = 'note-group' + (groupCls ? ' ' + groupCls : '');
+    noteGroupEl.style.display = c.note ? 'inline-block' : 'none';
+    noteEl.textContent = '';
+    noteEl.style.display = 'none';
+
+    starBtn.textContent = state.starred.has(idx) ? '★ Đã đánh dấu' : '☆ Đánh dấu';
+    if (typeof updatePracticeButton === 'function') updatePracticeButton();
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  }
+
+  function next() {
+    if (!view.length) return;
+    state.pos = (state.pos + 1) % view.length;
+    render(); saveState();
+  }
+  function prev() {
+    if (!view.length) return;
+    state.pos = (state.pos - 1 + view.length) % view.length;
+    render(); saveState();
+  }
+  function flip() {
+    card.classList.toggle('flipped');
+  }
+  function markGood() {
+    if (!view.length) return;
+    const idx = view[state.pos];
+    state.known.add(idx);
+    saveState();
+    // if filter is "unknown", removing this card shrinks view — handle:
+    if (state.filter === 'unknown') {
+      rebuildView();
+    } else {
+      next();
+    }
+  }
+  function markBad() {
+    if (!view.length) return;
+    const idx = view[state.pos];
+    state.known.delete(idx);
+    saveState();
+    next();
+  }
+  function toggleStar() {
+    if (!view.length) return;
+    const idx = view[state.pos];
+    if (state.starred.has(idx)) state.starred.delete(idx); else state.starred.add(idx);
+    saveState();
+    if (state.filter === 'starred') rebuildView(); else render();
+  }
+  function shuffle() {
+    for (let i = state.order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
+    }
+    state.pos = 0;
+    saveState();
+    rebuildView();
+  }
+  function resetProgress() {
+    if (!confirm('Xoá toàn bộ tiến trình (đã thuộc, đã đánh dấu, thứ tự)?')) return;
+    state.known.clear();
+    state.starred.clear();
+    state.order = CARDS.map((_, i) => i);
+    state.pos = 0;
+    saveState();
+    rebuildView();
+  }
+
+  // ---- listeners ----
+  card.addEventListener('dblclick', flip);
+  $('btn-flip').addEventListener('click', (e) => { e.stopPropagation(); flip(); });
+  $('btn-good').addEventListener('click', (e) => { e.stopPropagation(); markGood(); });
+  $('btn-bad').addEventListener('click', (e) => { e.stopPropagation(); markBad(); });
+  $('next').addEventListener('click', next);
+  $('prev').addEventListener('click', prev);
+  $('shuffle').addEventListener('click', shuffle);
+  $('reset').addEventListener('click', resetProgress);
+  starBtn.addEventListener('click', toggleStar);
+  directionEl.addEventListener('change', () => { state.direction = directionEl.value; saveState(); render(); });
+  filterEl.addEventListener('change', () => { state.filter = filterEl.value; state.pos = 0; saveState(); rebuildView(); });
+  searchEl.addEventListener('input', () => { searchTerm = searchEl.value; state.pos = 0; rebuildView(); });
+  deckEl.addEventListener('change', () => switchDeck(deckEl.value));
+
+  // ---- Practice mode (per-card) ----
+  const practiceBtn = $('practice');
+  const practiceView = $('practice-view');
+  let practiceState = null;
+
+  function getCurrentCard() {
+    if (!view.length) return null;
+    return CARDS[view[state.pos]];
+  }
+
+  function updatePracticeButton() {
+    const c = getCurrentCard();
+    const hasPractice = c && c.practice && (
+      (c.practice.mc && c.practice.mc.length) ||
+      (c.practice.arrange && c.practice.arrange.length) ||
+      (c.practice.translate && c.practice.translate.length)
+    );
+    practiceBtn.style.display = hasPractice ? '' : 'none';
+    if (!hasPractice && document.body.classList.contains('practice-mode')) {
+      exitPractice();
+    }
+  }
+
+  function buildPracticeQueue() {
+    const c = getCurrentCard();
+    if (!c || !c.practice) return [];
+    const p = c.practice;
+    const queue = [];
+    (p.mc || []).forEach(q => queue.push({...q, type: 'mc'}));
+    (p.arrange || []).forEach(q => queue.push({...q, type: 'arrange'}));
+    (p.translate || []).forEach(q => queue.push({...q, type: 'translate'}));
+    return queue;
+  }
+
+  function startPractice() {
+    const c = getCurrentCard();
+    if (!c || !c.practice) return;
+    document.body.classList.add('practice-mode');
+    practiceState = {
+      queue: buildPracticeQueue(),
+      card: c,
+      idx: 0,
+      results: [],
+      answer: [],
+    };
+    renderPractice();
+  }
+
+  function exitPractice() {
+    document.body.classList.remove('practice-mode');
+    practiceState = null;
+  }
+
+  function renderPractice() {
+    const st = practiceState;
+    if (!st) return;
+    if (st.idx >= st.queue.length) return renderResult();
+
+    const q = st.queue[st.idx];
+    const typeLabel = {mc: 'Trắc nghiệm', arrange: 'Sắp xếp câu', translate: 'Dịch Việt → Nhật'}[q.type];
+    const dots = st.queue.map((_, i) => {
+      if (i < st.idx) {
+        return `<span class="dot done ${st.results[i] ? 'correct' : 'wrong'}"></span>`;
+      } else if (i === st.idx) {
+        return '<span class="dot current"></span>';
+      }
+      return '<span class="dot"></span>';
+    }).join('');
+
+    let body = '';
+    if (q.type === 'mc') {
+      body = `
+        <div class="q-prompt">${escapeHtml(q.q.replace(/___+/g, '___'))}</div>
+        <div class="q-hint">${escapeHtml(q.vn)}</div>
+        <div class="q-options" id="q-options"></div>
+      `;
+    } else {
+      // arrange or translate — both use chip-bank UI
+      body = `
+        <div class="q-prompt">${escapeHtml(q.vn)}</div>
+        <div class="q-hint">${q.type === 'arrange' ? 'Sắp xếp các từ thành câu đúng:' : 'Dịch sang tiếng Nhật (có thể có từ thừa):'}</div>
+        <div class="q-answer" id="q-answer"></div>
+        <div class="q-bank" id="q-bank"></div>
+      `;
+    }
+
+    practiceView.innerHTML = `
+      <div class="ph">
+        <div class="title">🧠 Luyện tập: ${escapeHtml(st.card.jp)}</div>
+        <div class="pos">Câu ${st.idx + 1} / ${st.queue.length}</div>
+      </div>
+      <div class="progress-dots">${dots}</div>
+      <div class="qtype">${typeLabel}</div>
+      ${body}
+      <div id="q-feedback"></div>
+      <div class="actions">
+        <button class="secondary" id="q-exit">Đóng luyện tập</button>
+        <div>
+          <button class="secondary" id="q-skip" style="display:none">Bỏ qua</button>
+          <button id="q-submit">Kiểm tra</button>
+          <button id="q-next" style="display:none">Câu tiếp →</button>
+        </div>
+      </div>
+    `;
+
+    $('q-exit').onclick = () => exitPractice();
+
+    if (q.type === 'mc') {
+      renderMC(q);
+    } else {
+      renderChips(q);
+    }
+  }
+
+  function renderMC(q) {
+    const opts = $('q-options');
+    opts.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.textContent = opt;
+      b.onclick = () => selectMC(q, i);
+      opts.appendChild(b);
+    });
+    $('q-submit').style.display = 'none';  // MC auto-submits on click
+  }
+
+  function selectMC(q, picked) {
+    const opts = $('q-options');
+    [...opts.children].forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.correct) b.classList.add('correct');
+      else if (i === picked) b.classList.add('wrong');
+    });
+    showFeedback(picked === q.correct, q);
+  }
+
+  function renderChips(q) {
+    // Build shuffled bank state
+    practiceState.answer = [];
+    practiceState.bankUsed = q.tokens.map(() => false);
+
+    const renderAll = () => {
+      const ans = $('q-answer');
+      const bank = $('q-bank');
+      ans.innerHTML = '';
+      bank.innerHTML = '';
+      if (practiceState.answer.length === 0) {
+        const p = document.createElement('span');
+        p.className = 'placeholder';
+        p.textContent = 'Chạm các từ bên dưới để sắp xếp…';
+        ans.appendChild(p);
+      } else {
+        practiceState.answer.forEach((tokenIdx, pos) => {
+          const c = document.createElement('button');
+          c.className = 'chip in-answer';
+          c.textContent = q.tokens[tokenIdx];
+          c.onclick = () => {
+            practiceState.bankUsed[tokenIdx] = false;
+            practiceState.answer.splice(pos, 1);
+            renderAll();
+          };
+          ans.appendChild(c);
+        });
+      }
+      q.tokens.forEach((tok, i) => {
+        const c = document.createElement('button');
+        c.className = 'chip' + (practiceState.bankUsed[i] ? ' used' : '');
+        c.textContent = tok;
+        c.disabled = practiceState.bankUsed[i];
+        c.onclick = () => {
+          if (practiceState.bankUsed[i]) return;
+          practiceState.bankUsed[i] = true;
+          practiceState.answer.push(i);
+          renderAll();
+        };
+        bank.appendChild(c);
+      });
+    };
+    renderAll();
+
+    $('q-submit').onclick = () => checkChipAnswer(q);
+  }
+
+  function checkChipAnswer(q) {
+    const userTokens = practiceState.answer.map(i => q.tokens[i]);
+    const correct = JSON.stringify(userTokens) === JSON.stringify(q.correct);
+    // Freeze chips
+    [...$('q-answer').children, ...$('q-bank').children].forEach(el => { if (el.tagName === 'BUTTON') el.disabled = true; });
+    $('q-submit').style.display = 'none';
+    showFeedback(correct, q, userTokens);
+  }
+
+  function showFeedback(isCorrect, q, userTokens) {
+    practiceState.results.push(isCorrect);
+    const fb = $('q-feedback');
+    let correctText = '';
+    if (q.type === 'mc') {
+      correctText = `Đáp án: <b>${escapeHtml(q.options[q.correct])}</b>`;
+    } else {
+      correctText = `Đáp án đúng: <b>${escapeHtml(q.correct.join(' / '))}</b>`;
+    }
+    fb.className = 'q-feedback ' + (isCorrect ? 'correct' : 'wrong');
+    fb.innerHTML = `
+      <div><b>${isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng.'}</b></div>
+      ${!isCorrect ? '<span class="correct-answer">' + correctText + '</span>' : ''}
+      <div style="margin-top:6px">${escapeHtml(q.explain)}</div>
+    `;
+    $('q-submit').style.display = 'none';
+    const nextBtn = $('q-next');
+    nextBtn.style.display = '';
+    nextBtn.onclick = () => {
+      practiceState.idx++;
+      renderPractice();
+    };
+  }
+
+  function renderResult() {
+    const st = practiceState;
+    const correct = st.results.filter(Boolean).length;
+    const total = st.queue.length;
+    const pct = Math.round(correct / total * 100);
+    let label = '';
+    if (pct === 100) label = '🎉 Xuất sắc!';
+    else if (pct >= 70) label = '👍 Tốt lắm!';
+    else if (pct >= 40) label = '💪 Cố lên nhé!';
+    else label = '📚 Ôn lại ngữ pháp nào!';
+
+    // Group breakdown
+    const groups = {mc: 0, arrange: 0, translate: 0};
+    const totals = {mc: 0, arrange: 0, translate: 0};
+    st.queue.forEach((q, i) => {
+      totals[q.type]++;
+      if (st.results[i]) groups[q.type]++;
+    });
+
+    practiceView.innerHTML = `
+      <div class="ph">
+        <div class="title">Kết quả: ${escapeHtml(st.card.jp)}</div>
+      </div>
+      <div class="result">
+        <div class="score">${correct}/${total}</div>
+        <div class="label">${label}</div>
+        <div class="breakdown">
+          Trắc nghiệm: ${groups.mc}/${totals.mc}<br>
+          Sắp xếp câu: ${groups.arrange}/${totals.arrange}<br>
+          Dịch câu: ${groups.translate}/${totals.translate}
+        </div>
+        <div class="actions" style="justify-content:center">
+          <button class="secondary" onclick="document.body.classList.remove('practice-mode')">Đóng</button>
+          <button id="q-restart">Làm lại</button>
+        </div>
+      </div>
+    `;
+    $('q-restart').onclick = startPractice;
+  }
+
+  practiceBtn.addEventListener('click', startPractice);
+  updatePracticeButton();
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    switch (e.key) {
+      case ' ': e.preventDefault(); flip(); break;
+      case 'ArrowRight': next(); break;
+      case 'ArrowLeft': prev(); break;
+      case 'j': case 'J': markBad(); break;
+      case 'k': case 'K': markGood(); break;
+      case 's': case 'S': toggleStar(); break;
+      case 'r': case 'R': shuffle(); break;
+      case 'p': case 'P': speakCurrent(); break;
+    }
+  });
+
+  rebuildView();
+
+  // ---- Supabase auth + cloud sync ----
+  const authBtn = $('auth-btn');
+  const authModal = $('auth-modal');
+  const authClose = $('auth-close');
+  const authEmail = $('auth-email');
+  const authSubmit = $('auth-submit');
+  const authMsg = $('auth-msg');
+  const authTitle = $('auth-title');
+  const authHint = $('auth-hint');
+
+  const supaCfg = window.SUPABASE_CONFIG || {};
+  const supaEnabled = supaCfg.url && supaCfg.anonKey
+    && !supaCfg.url.includes('PLACEHOLDER')
+    && !supaCfg.anonKey.includes('PLACEHOLDER')
+    && window.supabase;
+
+  let supa = null;
+  let currentUser = null;
+  let syncTimers = {};
+
+  function setAuthMsg(text, kind) {
+    authMsg.textContent = text || '';
+    authMsg.className = 'auth-msg' + (kind ? ' ' + kind : '');
+  }
+  function openAuthModal() {
+    setAuthMsg('');
+    authEmail.value = '';
+    authModal.style.display = 'flex';
+    setTimeout(() => authEmail.focus(), 50);
+  }
+  function closeAuthModal() {
+    authModal.style.display = 'none';
+  }
+  function updateAuthUI() {
+    if (!supaEnabled) {
+      authBtn.style.display = 'none';
+      return;
+    }
+    authBtn.style.display = '';
+    if (currentUser) {
+      authBtn.textContent = '✓ ' + (currentUser.email || 'Đã đăng nhập');
+      authBtn.classList.add('logged-in');
+      authBtn.title = 'Click để đăng xuất';
+    } else {
+      authBtn.textContent = 'Đăng nhập';
+      authBtn.classList.remove('logged-in');
+      authBtn.title = 'Đăng nhập để đồng bộ tiến trình';
+    }
+  }
+
+  async function handleAuthClick() {
+    if (currentUser) {
+      // Logout confirm
+      if (confirm('Đăng xuất khỏi ' + (currentUser.email || 'tài khoản') + '? Tiến trình sẽ chỉ lưu trong trình duyệt này.')) {
+        await supa.auth.signOut();
+      }
+    } else {
+      openAuthModal();
+    }
+  }
+
+  async function submitAuth() {
+    const email = (authEmail.value || '').trim();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setAuthMsg('Email không hợp lệ.', 'error');
+      return;
+    }
+    authSubmit.disabled = true;
+    setAuthMsg('Đang gửi…', '');
+    try {
+      const { error } = await supa.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.href },
+      });
+      if (error) throw error;
+      setAuthMsg('✓ Đã gửi link đăng nhập tới ' + email + '. Mở email và click vào link.', 'success');
+    } catch (e) {
+      setAuthMsg('Lỗi: ' + (e.message || e), 'error');
+    } finally {
+      authSubmit.disabled = false;
+    }
+  }
+
+  async function loadFromCloud() {
+    if (!currentUser) return;
+    try {
+      const { data, error } = await supa
+        .from('user_deck_state')
+        .select('deck, state')
+        .eq('user_id', currentUser.id);
+      if (error) throw error;
+      let applied = 0;
+      for (const row of (data || [])) {
+        // Save to localStorage so next loadState() picks it up
+        localStorage.setItem(storageKey(row.deck), JSON.stringify(row.state));
+        applied++;
+      }
+      if (applied) {
+        // Reload state for current deck
+        state = loadState(currentDeck);
+        if (!state.order || state.order.length !== CARDS.length) {
+          state.order = CARDS.map((_, i) => i);
+        }
+        directionEl.value = state.direction;
+        filterEl.value = state.filter;
+        rebuildView();
+      }
+    } catch (e) {
+      console.warn('Cloud load failed:', e);
+    }
+  }
+
+  async function pushDeckState(deck, payload) {
+    if (!currentUser) return;
+    try {
+      const { error } = await supa
+        .from('user_deck_state')
+        .upsert({ user_id: currentUser.id, deck, state: payload }, { onConflict: 'user_id,deck' });
+      if (error) throw error;
+    } catch (e) {
+      console.warn('Cloud sync failed:', e);
+    }
+  }
+
+  // Debounced sync (2s after last change per deck)
+  window.scheduleCloudSync = function(deck, payload) {
+    if (!currentUser) return;
+    clearTimeout(syncTimers[deck]);
+    syncTimers[deck] = setTimeout(() => pushDeckState(deck, payload), 2000);
+  };
+
+  if (supaEnabled) {
+    supa = window.supabase.createClient(supaCfg.url, supaCfg.anonKey);
+    authBtn.addEventListener('click', handleAuthClick);
+    authClose.addEventListener('click', closeAuthModal);
+    authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
+    authSubmit.addEventListener('click', submitAuth);
+    authEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+
+    // Initial session check
+    supa.auth.getSession().then(({ data }) => {
+      currentUser = data.session?.user || null;
+      updateAuthUI();
+      if (currentUser) loadFromCloud();
+    });
+
+    // React to login/logout
+    supa.auth.onAuthStateChange((event, session) => {
+      currentUser = session?.user || null;
+      updateAuthUI();
+      if (event === 'SIGNED_IN') {
+        closeAuthModal();
+        loadFromCloud();
+      }
+    });
+  } else {
+    updateAuthUI();  // hides button when not configured
+  }
+</script>
+</body>
+</html>
