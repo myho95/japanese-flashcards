@@ -328,8 +328,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
 <script src="firebase-config.js"></script>
 <script src="cards-n5.js"></script>
 <script src="cards-n4.js"></script>
@@ -873,33 +871,6 @@
     }
   }
 
-  // ---- Kuroshiro furigana (lazy init) ----
-  let kuroshiroInstance = null;
-  let kuroshiroPromise = null;
-  async function getKuroshiro() {
-    if (kuroshiroInstance) return kuroshiroInstance;
-    if (kuroshiroPromise) return kuroshiroPromise;
-    kuroshiroPromise = (async () => {
-      if (typeof Kuroshiro === 'undefined' || typeof KuromojiAnalyzer === 'undefined') {
-        throw new Error('Kuroshiro chưa load');
-      }
-      const k = new Kuroshiro.default();
-      await k.init(new KuromojiAnalyzer({ dictPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/' }));
-      kuroshiroInstance = k;
-      return k;
-    })();
-    return kuroshiroPromise;
-  }
-  async function toFuriganaHTML(jp) {
-    try {
-      const k = await getKuroshiro();
-      return await k.convert(jp, { mode: 'furigana', to: 'hiragana' });
-    } catch (e) {
-      console.warn('Furigana failed:', e);
-      return escapeHtml(jp);
-    }
-  }
-
   // ---- AI grading via Vercel serverless function ----
   async function gradeTranslation(direction, sourceText, userAnswer, reference) {
     try {
@@ -1075,15 +1046,10 @@
         reveal.innerHTML = `
           <div class="q-answer-reveal">
             <div class="label">${isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng — Đáp án đúng:'}</div>
-            <div class="ja" id="reveal-ja">${escapeHtml(correctJp)}</div>
+            <div class="ja">${escapeHtml(correctJp)}</div>
             <div class="vn">→ ${escapeHtml(q.vn)}</div>
           </div>
         `;
-        // Replace JP with furigana asynchronously (fire-and-forget, never blocks Next)
-        toFuriganaHTML(correctJp).then(html => {
-          const el = $('reveal-ja');
-          if (el) el.innerHTML = html;
-        }).catch(e => console.warn('furigana:', e));
       }
     } catch (e) {
       console.error('checkArrangeAnswer error:', e);
@@ -1146,18 +1112,35 @@
   function showNextButton() {
     const nextBtn = $('q-next');
     if (!nextBtn) {
-      console.error('q-next button missing!');
+      console.error('q-next button missing — forcing fallback');
+      // Last resort: inject a button into the actions area
+      const actions = document.querySelector('.practice .actions');
+      if (actions) {
+        const btn = document.createElement('button');
+        btn.textContent = 'Câu tiếp →';
+        btn.style.cssText = 'padding:10px 18px;background:var(--good);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600';
+        btn.addEventListener('click', () => {
+          if (!practiceState) return;
+          practiceState.idx++;
+          renderPractice();
+        });
+        actions.appendChild(btn);
+      }
       return;
     }
-    nextBtn.style.display = '';
-    nextBtn.style.background = 'var(--good)';  // make it stand out
-    nextBtn.onclick = () => {
+    nextBtn.style.display = 'inline-block';
+    nextBtn.style.background = 'var(--good)';
+    nextBtn.style.color = '#fff';
+    // Use addEventListener for robust binding (clear old handlers via cloneNode)
+    const newBtn = nextBtn.cloneNode(true);
+    newBtn.style.display = 'inline-block';
+    nextBtn.parentNode.replaceChild(newBtn, nextBtn);
+    newBtn.addEventListener('click', () => {
       if (!practiceState) return;
       practiceState.idx++;
       renderPractice();
-    };
-    // Scroll the button into view so user always sees it
-    setTimeout(() => nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    });
+    setTimeout(() => newBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
   function renderResult() {
