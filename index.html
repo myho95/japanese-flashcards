@@ -178,7 +178,9 @@
   .practice .result .label { font-size: 16px; color: var(--muted); margin-bottom: 20px; }
   .practice .result .breakdown { font-size: 14px; color: var(--text); margin-bottom: 20px; line-height: 1.7; }
   /* Translation question UI */
-  .practice .q-source { font-size: 22px; line-height: 1.5; color: var(--ink); font-weight: 600; margin-bottom: 8px; padding: 12px 14px; background: #fdf6e3; border: 1px solid var(--border); border-radius: 10px; }
+  .practice .q-source { font-size: 22px; line-height: 2; color: var(--ink); font-weight: 600; margin-bottom: 8px; padding: 12px 14px; background: #fdf6e3; border: 1px solid var(--border); border-radius: 10px; }
+  .practice .q-source ruby rt { font-size: 11px; color: #8a6b3f; font-weight: 500; }
+  .practice .q-ai-result .reference ruby rt { font-size: 10px; color: #8a6b3f; font-weight: 500; }
   .practice .q-source.lang-jp { font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; }
   .practice .q-textarea { width: 100%; min-height: 80px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; font-size: 17px; color: var(--ink); font-family: inherit; resize: vertical; box-sizing: border-box; line-height: 1.5; }
   .practice .q-textarea:focus { outline: none; border-color: var(--accent); }
@@ -953,9 +955,10 @@
         <div id="q-result"></div>
       `;
     } else if (q.type === 'translate-jv') {
+      const srcHtml = q.source_furigana || escapeHtml(q.source);
       body = `
         <div class="q-hint">Dịch câu sau sang tiếng Việt:</div>
-        <div class="q-source lang-jp">${escapeHtml(q.source)}</div>
+        <div class="q-source lang-jp">${srcHtml}</div>
         <textarea id="q-input" class="q-textarea" placeholder="Gõ bản dịch tiếng Việt của bạn ở đây…" autocomplete="off"></textarea>
         <div id="q-result"></div>
       `;
@@ -1043,10 +1046,12 @@
       const reveal = $('q-reveal');
       const correctJp = q.correct.join('');
       if (reveal) {
+        // Use precomputed furigana ruby HTML if available, else plain text
+        const jaHtml = q.furigana || escapeHtml(correctJp);
         reveal.innerHTML = `
           <div class="q-answer-reveal">
             <div class="label">${isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng — Đáp án đúng:'}</div>
-            <div class="ja">${escapeHtml(correctJp)}</div>
+            <div class="ja">${jaHtml}</div>
             <div class="vn">→ ${escapeHtml(q.vn)}</div>
           </div>
         `;
@@ -1096,12 +1101,17 @@
       ? '<span class="score-badge" style="background:#888;color:#fff">—</span>'
       : `<span class="score-badge">${grade.score}/10</span>`;
 
+    // Use precomputed furigana for JP reference (translate-vj) — else plain text
+    const refHtml = (q.type === 'translate-vj' && q.reference_furigana)
+      ? q.reference_furigana
+      : escapeHtml(q.reference);
+
     result.className = '';
     result.innerHTML = `
       <div class="q-ai-result ${cls}">
         <div class="score-line">${scoreHTML}<span>${grade.score < 0 ? 'Không chấm được' : (isCorrect ? '✓ Tốt!' : 'Cần cải thiện')}</span></div>
         <div>${escapeHtml(grade.feedback)}</div>
-        <div class="reference"><b>Tham khảo:</b> ${escapeHtml(q.reference)}</div>
+        <div class="reference"><b>Tham khảo:</b> ${refHtml}</div>
       </div>
     `;
 
