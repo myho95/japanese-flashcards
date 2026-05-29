@@ -1062,29 +1062,36 @@
   }
 
   async function checkArrangeAnswer(q) {
-    const userTokens = practiceState.answer.map(i => q.tokens[i]);
-    const isCorrect = JSON.stringify(userTokens) === JSON.stringify(q.correct);
-    [...$('q-answer').children, ...$('q-bank').children].forEach(el => { if (el.tagName === 'BUTTON') el.disabled = true; });
-    $('q-submit').style.display = 'none';
-    practiceState.results.push(isCorrect);
+    try {
+      const userTokens = practiceState.answer.map(i => q.tokens[i]);
+      const isCorrect = JSON.stringify(userTokens) === JSON.stringify(q.correct);
+      [...$('q-answer').children, ...$('q-bank').children].forEach(el => { if (el.tagName === 'BUTTON') el.disabled = true; });
+      $('q-submit').style.display = 'none';
+      practiceState.results.push(isCorrect);
 
-    // Show answer reveal with furigana + VN translation
-    const reveal = $('q-reveal');
-    const correctJp = q.correct.join('');
-    reveal.innerHTML = `
-      <div class="q-answer-reveal">
-        <div class="label">${isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng — Đáp án đúng:'}</div>
-        <div class="ja" id="reveal-ja">${escapeHtml(correctJp)}</div>
-        <div class="vn">→ ${escapeHtml(q.vn)}</div>
-      </div>
-    `;
-    // Replace JP with furigana version asynchronously
-    toFuriganaHTML(correctJp).then(html => {
-      const el = $('reveal-ja');
-      if (el) el.innerHTML = html;
-    });
-
-    showNextButton();
+      const reveal = $('q-reveal');
+      const correctJp = q.correct.join('');
+      if (reveal) {
+        reveal.innerHTML = `
+          <div class="q-answer-reveal">
+            <div class="label">${isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng — Đáp án đúng:'}</div>
+            <div class="ja" id="reveal-ja">${escapeHtml(correctJp)}</div>
+            <div class="vn">→ ${escapeHtml(q.vn)}</div>
+          </div>
+        `;
+        // Replace JP with furigana asynchronously (fire-and-forget, never blocks Next)
+        toFuriganaHTML(correctJp).then(html => {
+          const el = $('reveal-ja');
+          if (el) el.innerHTML = html;
+        }).catch(e => console.warn('furigana:', e));
+      }
+    } catch (e) {
+      console.error('checkArrangeAnswer error:', e);
+      // Make sure user can still proceed
+      if (practiceState && Array.isArray(practiceState.results)) practiceState.results.push(false);
+    } finally {
+      showNextButton();
+    }
   }
 
   function renderTranslation(q) {
@@ -1138,11 +1145,19 @@
 
   function showNextButton() {
     const nextBtn = $('q-next');
+    if (!nextBtn) {
+      console.error('q-next button missing!');
+      return;
+    }
     nextBtn.style.display = '';
+    nextBtn.style.background = 'var(--good)';  // make it stand out
     nextBtn.onclick = () => {
+      if (!practiceState) return;
       practiceState.idx++;
       renderPractice();
     };
+    // Scroll the button into view so user always sees it
+    setTimeout(() => nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
   function renderResult() {
