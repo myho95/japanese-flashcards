@@ -57,6 +57,28 @@ Vercel auto-redeploy ~30s. Refresh URL → nút **Đăng nhập** xuất hiện 
 - Mất mạng vẫn dùng được — sync sẽ retry khi mạng lại
 - Reset tiến trình cloud: Firebase Console → Firestore → `users/{uid}/decks/` → xoá doc
 
+## Gemini AI Grading (cho practice ngữ pháp N5)
+
+Tính năng dịch tự do trong practice (3 câu Việt→Nhật + 3 câu Nhật→Việt) cần Gemini API key:
+
+1. **Lấy API key** (free):
+   - Vào https://aistudio.google.com/app/apikey
+   - Sign in Google → **Create API key** → copy
+
+2. **Add env var trên Vercel:**
+   - Vercel Dashboard → project `japanese-flashcards` → **Settings → Environment Variables**
+   - Name: `GEMINI_API_KEY`
+   - Value: paste API key
+   - Environments: tick cả **Production, Preview, Development**
+   - Save
+
+3. **Redeploy:**
+   - Vercel Dashboard → Deployments → click `...` ở deployment mới nhất → **Redeploy**
+   - Sau ~30s, AI grading sẽ hoạt động
+
+> 💡 Free tier Gemini: 15 req/phút, 1M token/ngày — quá đủ cho practice cá nhân.
+> ⚠️ Local file:// KHÔNG gọi được serverless function — AI grading chỉ chạy trên Vercel.
+
 ## Troubleshooting
 
 | Lỗi | Nguyên nhân | Fix |
